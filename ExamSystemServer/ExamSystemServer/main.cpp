@@ -31,6 +31,7 @@ void* threadWork(void* arg)
 	unsigned int length = *reinterpret_cast<unsigned int*>(pData);
 	pData += 4;
 	short cmd = *reinterpret_cast<short*>(pData);
+	printf("packet: head:%d length:%d cmd:%d",head,length,cmd);
 	pData += 2;
 	char* data = new char[length+1]; //这里是全数据,并且包含一个\0
 	memset(data,'\0',length * sizeof(char) + 1);
@@ -40,7 +41,7 @@ void* threadWork(void* arg)
 	//根据命令找出对应的任务
 	int sockClient = myArg->sockClient;
 	int epfd = myArg->epfd;
-	command.Excute(cmd,data,sockClient,epfd);
+	command.Excute(cmd,data,sockClient,epfd,length);
 	delete myArg;
 	pthread_exit(nullptr);
 }
@@ -134,6 +135,14 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 							break;
 						}
 						readSize += ret;
+					}
+					//在这里检查如果发送的数据包的包头不是0xFEFF,就不允许创建子线程
+					short head = 0xFEFF;
+					short recvHead;
+					memcpy(&recvHead,packet,sizeof(short));
+					if (head != recvHead)
+					{
+						continue;
 					}
 					//如果是客户端的套接字有响应,接收客户端发送的消息，解包，将任务放进线程池
 					//这里使用的是短连接，当客户端进行完成一次通信结束连接的时候需要从集合中移除客户端的fd
