@@ -99,7 +99,7 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 		}
 		else if (epl_cnt == 0)
 		{
-			printf("no Event!\r\n");
+			//printf("no Event!\r\n");
 			continue;
 		}
 		else
@@ -123,9 +123,11 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 					服务端不能一次性接收完毕，
 					所以得确保接收到的是一个数据包后才能开启子线程进行工作*/
 					//进行接收网络消息
-					char* packet = new char[2 + 4 + 2 + (1024 * 1024 * 2) + 1]; //接收一个数据包的大小
-					memset(packet, '\0', sizeof(char) * (2 + 4 + 2 + (1024 * 1024 * 2) + 1));
-					long long packetSize = 2 + 4 + 2 + (1024 * 1024 * 2) + 1;
+					//char* packet = new char[2 + 4 + 2 + (1024 * 1024 * 2) + 1]; //接收一个数据包的大小
+					//memset(packet, '\0', sizeof(char) * (2 + 4 + 2 + (1024 * 1024 * 2) + 1));
+					char* packet = new char[2 + 4 + 2 + (1024 * 500) + 1]; //接收一个数据包的大小
+					memset(packet, '\0', sizeof(char) * (2 + 4 + 2 + (1024 * 500) + 1));
+					long long packetSize = 2 + 4 + 2 + (1024 * 500) + 1;
 					long long readSize = 0;
 					while (readSize < packetSize)
 					{

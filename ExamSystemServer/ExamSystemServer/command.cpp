@@ -102,13 +102,15 @@ void CCommand::getHeadPicture(char* filePath, int sockClient, int epfd,int dataL
 	fseek(pFile,0,SEEK_END);
 	off_t fileSize = ftello64(pFile);
 	fseek(pFile,0,SEEK_SET);
-	char* data = new char[1024 * 1024 * 2]; 
-	memset(data,'\0',sizeof(char)* 1024 * 1024 * 2);
+	//char* data = new char[1024 * 1024 * 2]; 
+	//memset(data,'\0',sizeof(char)* 1024 * 1024 * 2);
 
+	char* data = new char[1024 * 500]; 
+	memset(data,'\0',sizeof(char)* 1024 * 500);
 	size_t ret =  fread(data,1, fileSize,pFile);
 	printf("read file size:%d\r\n",ret);
 	//封包
-	char* packet = new char[2 + 4 + 2 + (1024 * 1024 * 2) + 1];
+	char* packet = new char[2 + 4 + 2 + (1024 * 500) + 1];
 	char* p = packet;
 	short head = 0xFEFF;
 	unsigned int length = fileSize;
@@ -124,7 +126,7 @@ void CCommand::getHeadPicture(char* filePath, int sockClient, int epfd,int dataL
 	p += length;
 
 	//发送数据包
-	long long  sendCount = 2 + 4 + 2 + (1024 * 1024 * 2) + 1;
+	long long  sendCount = 2 + 4 + 2 + (1024 * 500) + 1;
 	long long alReadySend = 0;
 	while (true)
 	{
