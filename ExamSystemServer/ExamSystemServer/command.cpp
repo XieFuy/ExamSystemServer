@@ -2,7 +2,7 @@
 
 CCommand::CCommand()
 {
-	this->m_threadPool = new CThreadPool(4);
+	this->m_threadPool = new CThreadPool(10);
 	pthread_mutex_init(&this->m_mutex,nullptr);
 	pthread_mutex_init(&this->m_mutex2,nullptr);
 	struct arr {

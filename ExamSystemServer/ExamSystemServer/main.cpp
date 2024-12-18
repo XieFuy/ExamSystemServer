@@ -55,9 +55,9 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 	server->Listen();
 	//server->acceptClient();
 
-#if 0
+
 	//char* packet = server->getPacket();
-	char* recvBuffer = new char[2 + 4 + 2 + (1024 * 1024 * 2) + 1];
+	/*char* recvBuffer = new char[2 + 4 + 2 + (1024 * 1024 * 2) + 1];
 	int count = 0;
 	while (true) //得出结果，在公网中，客户端send很大的数据，在服务端需要执行很多次recv才能接收完毕一个数据包
 	{
@@ -74,8 +74,8 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 	
 	delete[] recvBuffer;
 	printf("recv Size:%d\r\n",count);
-	while (1);
-#endif 
+	while (1);*/
+
 	//创建一个epoll对象
 	int epfd = epoll_create(1);
 	int epl_cnt; //有反应的文件描述符总数量
@@ -91,7 +91,7 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 	//进行不断的监听集合
 	while (true)
 	{
-		epl_cnt = epoll_wait(epfd, allEvents, 1000, 1000);
+		epl_cnt = epoll_wait(epfd, allEvents, 1000, 1);
 		if (epl_cnt < 0)
 		{
 			printf("epllo_wait error , errno:%d.\r\n", errno);
