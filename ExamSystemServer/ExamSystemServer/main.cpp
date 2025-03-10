@@ -33,7 +33,7 @@ void* threadWork(void* arg)
 		return nullptr;
 	}
 
-	char* packet = new char[2 + 4 + 2 + (1024 * 500) + 1]; //接收一个数据包的大小
+	/*char* packet = new char[2 + 4 + 2 + (1024 * 500) + 1]; //接收一个数据包的大小
 	myArg->packet = packet;
 	memset(packet, '\0', sizeof(char) * (2 + 4 + 2 + (1024 * 500) + 1));
 	long long packetSize = 2 + 4 + 2 + (1024 * 500) + 1;
@@ -58,7 +58,7 @@ void* threadWork(void* arg)
 		delete[] myArg->packet;
 		delete myArg;
 		return 0;
-	}
+	}*/
 
 	//解包，在外部进行接收完整的数据包后进行解析
 	char* pData = const_cast<char*>(myArg->packet);
@@ -141,7 +141,7 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 					//虽然边缘触发有数据来的时候，只会触发epoll_wait一次，而水平触发只要有数据来，就会一直触发epoll_wait
 					/*导致的可能原因是客户端发送的包的大小是 2097161服务端不能一次性接收完毕，所以得确保接收到的是一个数据包后才能开启子线程进行工作*/
 	               //进行接收网络消息
-					/*char* packet = new char[2 + 4 + 2 + (1024 * 500) + 1]; //接收一个数据包的大小
+					char* packet = new char[2 + 4 + 2 + (1024 * 500) + 1]; //接收一个数据包的大小
 					memset(packet, '\0', sizeof(char) * (2 + 4 + 2 + (1024 * 500) + 1));
 					long long packetSize = 2 + 4 + 2 + (1024 * 500) + 1;
 					long long readSize = 0;
@@ -163,12 +163,12 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 					if (head != recvHead)
 					{
 						continue;
-					}*/
+					}
 					//delete data;
 					Arg* arg = new Arg();
 					arg->sockClient = allEvents[i].data.fd;
 					arg->epfd = epfd;
-					//arg->packet = packet;
+					arg->packet = packet;
 					pthread_t  thread;
 					pthread_create(&thread,nullptr,&threadWork,arg);
 					}
