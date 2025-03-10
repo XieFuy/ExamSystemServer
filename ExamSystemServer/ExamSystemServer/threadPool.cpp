@@ -40,7 +40,8 @@ void* CThreadPool::threadWorkFunc(void* arg) //每一个线程都要工作的内容
 		{
 			pthread_mutex_unlock(&thiz->m_queueMutex);
 			pthread_detach(pthread_self());
-			pthread_exit(NULL);
+			return nullptr;
+			//pthread_exit(NULL);
 		}
 		//从任务队列中拿取任务
 		std::function<void()> task = std::move(thiz->m_taskQueue.front()); //作为右值的的对象尽量转为右值引用

@@ -2,7 +2,7 @@
 
 CCommand::CCommand()
 {
-	this->m_threadPool = new CThreadPool(10);
+	this->m_threadPool = new CThreadPool(4);
 	pthread_mutex_init(&this->m_mutex,nullptr);
 	pthread_mutex_init(&this->m_mutex2,nullptr);
 	struct arr {
@@ -190,6 +190,10 @@ void CCommand::upLoadHeadPicture(char* pData, int sockClient, int epfd,int dataL
 	pthread_mutex_lock(&this->m_mutex);
 	epoll_ctl(epfd, EPOLL_CTL_DEL, sockClient, NULL);
 	pthread_mutex_unlock(&this->m_mutex);
+	if (pData != nullptr)
+	{
+		delete[] pData;
+	}
 }
 
 /*
