@@ -12,7 +12,7 @@ public:
 	~CThreadPool();
 	CThreadPool(const CThreadPool& threadPool);
 	CThreadPool& operator=(const CThreadPool& threadPool);
-	void addTask(std::function<void()> taskFunc);
+	void addTask(std::function<void()> taskFunc);                                      
 private:
 	pthread_mutex_t m_TaskMutex;
 	bool m_isStop;

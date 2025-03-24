@@ -12,6 +12,11 @@
 
 网络IO模型使用epoll,能够处理高并发的场景需求
 */
+
+/*
+服务端出现的问题：1、内存泄漏，应该存在，在程序不正常的时候进程占用内存229MB
+                  2、进程在持续一段时间后会出现阻塞现象，应该是网络的I/O阻塞或者是epoll_wait阻塞
+*/
 struct Arg
 {
 	int epfd;
@@ -149,7 +154,7 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 					{
 						//printf("start recv!\n");
 						ssize_t ret = read(allEvents[i].data.fd, packet + readSize, packetSize - readSize);
-						if (ret <= 0)
+						if (ret <= 0)//接收出现问题
 						{
 							break;
 						}
