@@ -18,7 +18,7 @@ public:
 	int Excute(int cmd,char* data,int sockClient,int epfd,int dataLength); 
 	static void* task(void* arg);
 public:
-	CThreadPool* m_threadPool;
+	//CThreadPool* m_threadPool;
 	void Dump(const char* Data, size_t nSize)  //打印输出测试设计的包的数据是什么
 	{
 		std::string strOut;  //用于存储整个包的数据的结果

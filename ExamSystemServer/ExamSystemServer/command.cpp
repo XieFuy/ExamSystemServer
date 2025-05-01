@@ -13,10 +13,10 @@ public:
 
 CCommand::CCommand()
 {
-	this->m_threadPool = new CThreadPool(4);
+	/*this->m_threadPool = new CThreadPool(4);
 	pthread_mutex_init(&this->m_mutex,nullptr);
 	pthread_mutex_init(&this->m_mutex2,nullptr);
-	pthread_mutex_init(&this->m_mutex_3,nullptr);
+	pthread_mutex_init(&this->m_mutex_3,nullptr);*/
 	struct arr {
 		int cmd;
 		FUNC func;
@@ -36,10 +36,10 @@ CCommand::CCommand()
 
 CCommand::~CCommand()
 {
-	if (this->m_threadPool != nullptr)
+	/*if (this->m_threadPool != nullptr)
 	{
 		delete this->m_threadPool;
-	}
+	}*/
 }
 
 //每个函数都要检查传进来的数组是否delete[] ,并且打开的文件指针是否fclose，还有epoll移出文件描述符，其余全换成智能指针
@@ -335,6 +335,7 @@ int CCommand::Excute(int cmd,char* data, int sockClient, int epfd,int dataLength
 		std::shared_ptr<Arg> arg = std::make_shared<Arg>(cmd,data,sockClient,epfd,dataLength,ret->second,this);
 		std::shared_ptr<Arg>* p = new std::shared_ptr<Arg>(arg);
 		pthread_create(&thread,nullptr,&task,p); //在这里进行开启子线程执行任务
+		pthread_detach(thread);
 		pthread_mutex_unlock(&this->m_mutex_3);
 		//将任务放到线程池中
 		//this->m_threadPool->addTask([=]() {  (this->*ret->second)(data,sockClient,epfd,dataLength); }); //添加任务是线程安全的

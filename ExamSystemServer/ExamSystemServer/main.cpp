@@ -3,6 +3,7 @@
 #include"command.h"
 #include <sys/epoll.h>
 #include <sys/errno.h>
+#include <memory>
 
 //确保要封装的类
 /*
@@ -28,7 +29,9 @@ static CCommand command;
 
 void* threadWork(void* arg)
 {
-	Arg* myArg = (Arg*)arg;
+	std::shared_ptr<Arg>* p = static_cast<std::shared_ptr<Arg>*>(arg);
+	std::shared_ptr<Arg> myArg = *p;
+	//Arg* myArg = (Arg*)arg;
 
 	//如果是客户端的套接字有响应,接收客户端发送的消息，解包，将任务放进线程池
 	//这里使用的是短连接，当客户端进行完成一次通信结束连接的时候需要从集合中移除客户端的fd
@@ -37,33 +40,6 @@ void* threadWork(void* arg)
 	{
 		return nullptr;
 	}
-
-	/*char* packet = new char[2 + 4 + 2 + (1024 * 500) + 1]; //接收一个数据包的大小
-	myArg->packet = packet;
-	memset(packet, '\0', sizeof(char) * (2 + 4 + 2 + (1024 * 500) + 1));
-	long long packetSize = 2 + 4 + 2 + (1024 * 500) + 1;
-	long long readSize = 0;
-	while (readSize < packetSize)
-	{
-		//printf("start recv!\n");
-		ssize_t ret = read(myArg->sockClient, packet + readSize, packetSize - readSize);
-		if (ret <= 0)
-		{
-			break;
-		}
-		readSize += ret;
-	}
-	printf("recv end!\r\n");
-	//在这里检查如果发送的数据包的包头不是0xFEFF,就不允许创建子线程
-	short tmpHead = 0xFEFF;
-	short recvHead;
-	memcpy(&recvHead, packet, sizeof(short));
-	if (tmpHead != recvHead)
-	{
-		delete[] myArg->packet;
-		delete myArg;
-		return 0;
-	}*/
 
 	//解包，在外部进行接收完整的数据包后进行解析
 	char* pData = const_cast<char*>(myArg->packet);
@@ -82,7 +58,7 @@ void* threadWork(void* arg)
 	int sockClient = myArg->sockClient;
 	int epfd = myArg->epfd;
 	command.Excute(cmd,data,sockClient,epfd,length);
-	delete myArg;
+	delete p;
 }
 
 int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
@@ -96,7 +72,8 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 	//创建一个epoll对象
 	int epfd = epoll_create(1);
 	int epl_cnt; //有反应的文件描述符总数量
-	epoll_event* allEvents = new epoll_event[1000]; //容器队列，能存储的fd队列
+	std::unique_ptr<epoll_event[]> allEvents(new epoll_event[1000]);
+	//epoll_event* allEvents = new epoll_event[1000]; //容器队列，能存储的fd队列
 	epoll_event epoEvent;
 	epoEvent.events = EPOLLIN;
 	epoEvent.data.fd = server->getSocketSerever();
@@ -108,7 +85,7 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 	//进行不断的监听集合
 	while (true)
 	{
-		epl_cnt = epoll_wait(epfd, allEvents, 1000, -1);
+		epl_cnt = epoll_wait(epfd, allEvents.get(), 1000, -1);
 		if (epl_cnt < 0)
 		{
 			printf("epllo_wait error , errno:%d.\r\n", errno);
@@ -156,9 +133,21 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 						ssize_t ret = read(allEvents[i].data.fd, packet + readSize, packetSize - readSize);
 						if (ret <= 0)//接收出现问题
 						{
+							printf("server recive error!\r\n");
+							// 关闭 socket 并从 epoll 移除
+							close(allEvents[i].data.fd);
+							epoll_ctl(epfd, EPOLL_CTL_DEL, allEvents[i].data.fd, nullptr);
+							// 释放已分配的内存
+							delete[] packet;
+							packet = nullptr;
 							break;
 						}
 						readSize += ret;
+					}
+					//如果出现异常，那么packet指针就是nullptr
+					if (packet == nullptr)
+					{
+						continue;
 					}
 					printf("recv end!\r\n");
 					//在这里检查如果发送的数据包的包头不是0xFEFF,就不允许创建子线程
@@ -169,18 +158,19 @@ int main() //在线考试系统服务端 //网络IO模型使用epoll ,工作任务使用线程池
 					{
 						continue;
 					}
-					//delete data;
-					Arg* arg = new Arg();
+					std::shared_ptr<Arg> arg = std::make_shared<Arg>();
+					//Arg* arg = new Arg();
 					arg->sockClient = allEvents[i].data.fd;
 					arg->epfd = epfd;
 					arg->packet = packet;
+					std::shared_ptr<Arg>* pArg = new std::shared_ptr<Arg>(arg);
 					pthread_t  thread;
-					pthread_create(&thread,nullptr,&threadWork,arg);
+					pthread_create(&thread,nullptr,&threadWork,pArg);
+					pthread_detach(thread); //避免僵尸线程的出现
 					}
 				}
 			}
 		}
 	}
-	delete[]  allEvents;
 	return 0;
 }
